@@ -5,7 +5,7 @@
 package helper.label;
 //import gnu.io.CommPort;
 import gnu.io.*;
-import helper.label.ioOperate.IOStreamOperation;
+import helper.label.ioOperate.OutputPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +30,8 @@ public class PIDHelper  {
     private JButton flushButton;
     private JButton actionButton;
 //    private openPortListener portListener;
-
+    private OutputPanel outputPanel;
+    private startEngine start_Engine;
     private SerialPort serialPort;
     private JFrame jf;
     public PIDHelper(JFrame jf)
@@ -46,9 +47,10 @@ public class PIDHelper  {
         dataBits = new JComboBox();
         Port_Name=new JComboBox();
         BauldRate = new JComboBox();
+        outputPanel =new OutputPanel(jf);
         p1=new JPanel();
-        p2=new JPanel();
-        p3=new JPanel();
+        p2= outputPanel.getIoPanel();
+//        p3=new JPanel();
         p4=new JPanel();
 //        Icon =new ImageIcon("helper/label/refresh.ico");
 //        Icon.setImage(Icon.getImage().getScaledInstance(5,5,Image.SCALE_DEFAULT));
@@ -57,6 +59,8 @@ public class PIDHelper  {
         actionButton=new JButton("打开串口");
 //        portListener=new openPortListener();
         serialPort=null;
+        start_Engine=new startEngine(jf);
+        p3=start_Engine.startEnginePanel();
     }
 
 
@@ -165,6 +169,12 @@ public class PIDHelper  {
                     try {
                         commPort=portIdentifier.open(trim0,5000);
                     } catch (PortInUseException portInUseException) {
+
+                            JDialog jDialog=new JDialog(jf,"Error",true);
+                            jDialog.setBounds(500,240,160,100);
+                            jDialog.setLayout(new FlowLayout());
+                            jDialog.add(new JLabel("该串口已经被占用"));
+                            jDialog.setVisible(true);
                         portInUseException.printStackTrace();
                     }
                     switch (trim3)
@@ -200,8 +210,9 @@ public class PIDHelper  {
                          */
                         try {
                             serialPort.setSerialPortParams(Integer.parseInt(trim1),Integer.parseInt(trim2),Integer.parseInt(trim4),checkBit);
+                            outputPanel.setSerialPort(serialPort);
+                            start_Engine.setSerialPort(serialPort);
                             new portOpenSuccess(jf,commPort).setVisible(true);
-
                         } catch (UnsupportedCommOperationException unsupportedCommOperationException) {
                             unsupportedCommOperationException.printStackTrace();
                             if(serialPort!=null)
@@ -209,15 +220,12 @@ public class PIDHelper  {
                                 serialPort.close();
                             }
                         }
-
-                    }
-                    else {
+                    } else {
                         new ErrorDialog(jf,commPort).setVisible(true);
-
                     }
 //                    System.out.println(serialPort.getBaudRate()+" "+serialPort.getDataBits());
-                    IOStreamOperation ioStreamOperation=new IOStreamOperation(serialPort);
-                    ioStreamOperation.writeData(("abc").getBytes());
+//                    IOStreamOperation ioStreamOperation=new IOStreamOperation(serialPort);
+//                    ioStreamOperation.writeData(("abc").getBytes());
                 }
             }
         });
@@ -229,11 +237,11 @@ public class PIDHelper  {
 
         //PID选项卡划分为左右两部分
         JSplitPane jSplitPane=new JSplitPane();
-        jSplitPane.setDividerLocation(180);
+        jSplitPane.setDividerLocation(240);
 
         //将左边的划分区域再次划分——一分为二
         JSplitPane jSplitPane1=new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        jSplitPane1.setDividerLocation(240);
+        jSplitPane1.setDividerLocation(300);
         jSplitPane1.setDividerSize(8);
         jSplitPane.setLeftComponent(jSplitPane1);
         jSplitPane1.setLeftComponent(p1);
@@ -241,7 +249,7 @@ public class PIDHelper  {
 
         //二分为三
         JSplitPane jSplitPane2=new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        jSplitPane2.setDividerLocation(180);
+        jSplitPane2.setDividerLocation(300);
         jSplitPane2.setDividerSize(8);
         jSplitPane1.setRightComponent(jSplitPane2);
         jSplitPane2.setLeftComponent(p2);
@@ -267,5 +275,9 @@ public class PIDHelper  {
     public SerialPort getSerialPort()
     {
         return serialPort;
+    }
+
+    public void setSerialPort(SerialPort serialPort) {
+        this.serialPort = serialPort;
     }
 }

@@ -16,6 +16,6 @@ public class ErrorDialog extends JDialog {
         Container con=getContentPane();
 //        setLayout(new FlowLayout());
         con.add(new JLabel("当前端口"+commPort.getName()+"不是串口"));
-        setBounds(420,250,100,100);
+        setBounds(500,240,160,100);
     }
 }

@@ -21,7 +21,7 @@ public class Controller extends JFrame {
     {
         init();
         setLocation(150,60);
-        setSize(800,600);
+        setSize(1000,800);
         setVisible(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(true);

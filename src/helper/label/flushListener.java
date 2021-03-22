@@ -4,6 +4,8 @@
  */
 package helper.label;
 
+import gnu.io.SerialPort;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +23,12 @@ public class flushListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         portName=pidHelper.getPortName();
         Port_Name=pidHelper.getPort_NameComponent();
+        SerialPort serialPort=pidHelper.getSerialPort();
+        if(serialPort!=null)
+        {
+            serialPort.close();
+        }
+        pidHelper.setSerialPort(null);
         Port_Name.removeAllItems();
         Port_Name.repaint();
         for(String str:portName)

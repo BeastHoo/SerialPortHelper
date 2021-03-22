@@ -15,6 +15,6 @@ public class portOpenSuccess extends JDialog {
         super(jf,"Succeed",true);
         Container con=getContentPane();
         con.add(new JLabel("当前端口 "+commPort.getName()+" 打开成功"));
-        setBounds(420,250,100,100);
+        setBounds(500,240,160,100);
     }
 }
