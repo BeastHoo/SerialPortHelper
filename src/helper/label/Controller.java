@@ -14,9 +14,7 @@ import java.awt.event.WindowListener;
 
 public class Controller extends JFrame {
 //    private JTabbedPane pane;
-    private JMenuBar bar;
     private JSplitPane jSplitPane;
-    private SerialPort serialPort;
     public Controller()
     {
         init();
@@ -30,7 +28,7 @@ public class Controller extends JFrame {
     {
         setTitle("上位机");
         PIDHelper pidHelper=new PIDHelper(this);
-        serialPort=pidHelper.getSerialPort();
+
         jSplitPane=pidHelper.style();
         add(jSplitPane);
 //        UIManager.put("TabbedPane.contentOpaque", false);
@@ -48,8 +46,13 @@ public class Controller extends JFrame {
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 setVisible(false);
-                if(serialPort!=null)
-                    serialPort.close();
+
+                if(pidHelper.getSerialPort()!=null)
+                {
+                    pidHelper.getRedo().getIoStreamOperation().actRedo();
+                    pidHelper.getSerialPort().close();
+                }
+
                 System.exit(0);
             }
         });

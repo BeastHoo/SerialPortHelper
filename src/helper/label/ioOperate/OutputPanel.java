@@ -72,25 +72,13 @@ public class OutputPanel implements ActionListener {
                     jDialog.add(new JLabel("未打开串口，请重试"));
                     jDialog.setVisible(true);
                 }
-                if(ioStreamOperation.getSerialPort()==null)
+                if(ioStreamOperation.getSerialPort()==null||ioStreamOperation.getSerialPort()!=serialPort)
                 {
                     ioStreamOperation.setSerialPort(serialPort);
                 }
                 String expectValStr=expectVal.getText();
-                if(true==ioStreamOperation.writeData(ioStreamOperation.makeCurrentExpectedValDataFramePackage(expectValStr)))
-                {
-                    JDialog jDialog=new JDialog(jf,"Succeed",true);
-                    jDialog.setBounds(500,240,160,100);
-                    jDialog.setLayout(new FlowLayout());
-                    jDialog.add(new JLabel("目标值设置成功"));
-                    jDialog.setVisible(true);
-                }else {
-                    JDialog jDialog=new JDialog(jf,"Fail",true);
-                    jDialog.setBounds(500,240,160,100);
-                    jDialog.setLayout(new FlowLayout());
-                    jDialog.add(new JLabel("目标值设置失败"));
-                    jDialog.setVisible(true);
-                }
+                ioStreamOperation.setExpectedLoc(Integer.parseInt(expectValStr));
+                ioStreamOperation.writeData(ioStreamOperation.makeCurrentExpectedValDataFramePackage(expectValStr));
             }
         });
     }
@@ -120,6 +108,11 @@ public class OutputPanel implements ActionListener {
 
     public void setSerialPort(SerialPort serialPort) {
         this.serialPort = serialPort;
+    }
+
+    public IOStreamOperation getIoStreamOperation()
+    {
+        return ioStreamOperation;
     }
 
     @Override

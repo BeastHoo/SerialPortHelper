@@ -1,4 +1,4 @@
-/**
+/*
  * 此类用于串口间的数据通信操作，主要是input和output
  * STARTSHIP: 2021/3/20
  * @author HEYUQIAN
@@ -9,7 +9,6 @@ package helper.label.ioOperate;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,17 +34,19 @@ public class IOStreamOperation implements SerialPortEventListener{
     private InputStream inputStream;
     //串口输出流引用
     private OutputStream outputStream;
-    public IOStreamOperation(SerialPort serialPort)
-    {
-        this.serialPort=serialPort;
-        inputStream=null;
-        outputStream=null;
-        init();
-    }
+    //期望值
+    private int expectedLoc;
+    //图表
+    //目标值
+    private RealTimeChartWithZoom realTimeChartWithZoom;
+
+
+
     public IOStreamOperation()
     {
         inputStream=null;
         outputStream=null;
+        serialPort=null;
 //        init();
     }
 
@@ -55,6 +56,10 @@ public class IOStreamOperation implements SerialPortEventListener{
         init();
     }
 
+
+    public void setRealTimeChartWithZoom(RealTimeChartWithZoom realTimeChartWithZoom) {
+        this.realTimeChartWithZoom = realTimeChartWithZoom;
+    }
     public SerialPort getSerialPort()
     {
         return serialPort;
@@ -64,6 +69,7 @@ public class IOStreamOperation implements SerialPortEventListener{
     {
         try {
             serialPort.addEventListener(this);
+            serialPort.notifyOnDataAvailable(true);
         } catch (TooManyListenersException e) {
             e.printStackTrace();
         }
@@ -107,7 +113,7 @@ public class IOStreamOperation implements SerialPortEventListener{
         byte [] dataFramePackage=new byte[16];
         dataFramePackage[0]= (byte) 0xAA;
         dataFramePackage[1]=0x07;
-        int j=0;
+        int j;
         float Pf=Float.parseFloat(p);
         float If=Float.parseFloat(i);
         float Df=Float.parseFloat(d);
@@ -127,24 +133,6 @@ public class IOStreamOperation implements SerialPortEventListener{
         {
             dataFramePackage[10+j]=DfB[j];
         }
-//        byte [] PfB=hexToByteArray(p);
-//        byte [] IfB=hexToByteArray(i);
-//        byte [] DfB=hexToByteArray(d);
-//        for(j=0;j<PfB.length;j++)
-//        {
-//            dataFramePackage[2+j]=PfB[j];
-//        }
-//
-//        for(j=0;j<IfB.length;j++)
-//        {
-//            dataFramePackage[6+j]=PfB[j];
-//        }
-//
-//        for(j=0;j<PfB.length;j++)
-//        {
-//            dataFramePackage[10+j]=PfB[j];
-//        }
-
         dataFramePackage[14]=Check_CS(dataFramePackage);
         dataFramePackage[15]=(byte)0x2f;
 
@@ -156,8 +144,8 @@ public class IOStreamOperation implements SerialPortEventListener{
         byte[] dataPackage=new byte[16];
         dataPackage[0] = (byte) 0xAA;
         dataPackage[1] = 0x08;
-        Float f=Float.parseFloat(expectValStr);
-        byte [] temp=getByteArray(f);
+        int f=Integer.parseInt(expectValStr);
+        byte [] temp=getExpectedByteArray(f);
         for(int i=0;i<temp.length;i++)
         {
             dataPackage[2+i]=temp[i];
@@ -182,13 +170,21 @@ public class IOStreamOperation implements SerialPortEventListener{
         return dataFramePackage;
     }
 
+    public void actRedo()
+    {
+        byte [] dataFramePackage=new byte[16];
+        int [] redo={0xAA,0x09,0x09,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0xB9,0x2F};
+        for(int i=0;i<16;i++)
+        {
+            dataFramePackage[i] = (byte) redo[i];
+        }
+        writeData(dataFramePackage);
+    }
 
     public static byte[] getByteArray(float f) {
         int intbits = Float.floatToIntBits(f);//将float里面的二进制串解释为int整数
         return getByteArray(intbits);
     }
-
-
 
     public static byte[] getByteArray(int i) {
         byte[] b = new byte[4];
@@ -198,6 +194,23 @@ public class IOStreamOperation implements SerialPortEventListener{
         b[3] = (byte)  (i & 0x000000ff);
         return b;
     }
+
+    public static byte[] getExpectedByteArray(int i) {
+        byte[] b = new byte[4];
+        b[3] = (byte) ((i & 0xff000000) >> 24);
+        b[2] = (byte) ((i & 0x00ff0000) >> 16);
+        b[1] = (byte) ((i & 0x0000ff00) >> 8);
+        b[0] = (byte)  (i & 0x000000ff);
+        return b;
+    }
+
+    public static int getInt(byte[] arr, int index) {
+        return (0xff000000 & (arr[index + 3] << 24)) |
+                (0x00ff0000 & (arr[index + 2] << 16)) |
+                (0x0000ff00 & (arr[index + 1] << 8)) |
+                (0x000000ff & arr[index]);
+    }
+
 
     public static byte Check_CS(byte[] Abyte)
     {
@@ -213,30 +226,37 @@ public class IOStreamOperation implements SerialPortEventListener{
         return result;
     }
 
-//    public static void recHexCodeInverse(byte [] hexByte)
-//    {
-//
-//    }
 
     @Override
     public void serialEvent(SerialPortEvent serialPortEvent) {
         if(serialPortEvent.getEventType()==SerialPortEvent.DATA_AVAILABLE)
         {
+            try {
+                inputStream=serialPort.getInputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             byte[] readBuffer=new byte[200];
 
             try {
-                int numBytes=0;
+//                int numBytes=0;
                 while(inputStream.available()>0)
                 {
-                    numBytes=inputStream.read(readBuffer);
-//                    recHexCodeInverse(readBuffer);
+
+                    inputStream.read(readBuffer,0,16);
+                    int cur_loc=getInt(readBuffer,2);
+                    realTimeChartWithZoom.update(expectedLoc,cur_loc);
                 }
-                System.out.println(readBuffer);
+
             }catch (IOException e)
             {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void setExpectedLoc(int expectedLoc) {
+        this.expectedLoc = expectedLoc;
     }
 }
 

@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
 
 public class startEngine implements ActionListener {
     private JButton start;
-    private JPanel panel;
+//    private JPanel panel;
     private IOStreamOperation ioStreamOperation;
     private SerialPort serialPort;
     private JFrame jf;
@@ -27,17 +27,18 @@ public class startEngine implements ActionListener {
     {
         ioStreamOperation=new IOStreamOperation();
         start=new JButton("启动电机");
-        start.setFont(new Font("黑体", Font.PLAIN,30));
+        start.setFont(new Font("黑体", Font.PLAIN,16));
         start.addActionListener(this);
-        panel=new JPanel();
+//        panel=new JPanel();
     }
-
-    public JPanel startEnginePanel()
+    public void setIoStreamOperation(IOStreamOperation ioStreamOperation)
     {
-        panel.setBackground(Color.white);
-        panel.setLayout(new GridLayout(1,1));
-        panel.add(start);
-        return panel;
+        this.ioStreamOperation=ioStreamOperation;
+    }
+    public JButton startEngineButton()
+    {
+
+        return start;
     }
 
     @Override
@@ -50,7 +51,7 @@ public class startEngine implements ActionListener {
             jDialog.add(new JLabel("未打开串口，请重试"));
             jDialog.setVisible(true);
         }
-        if(ioStreamOperation.getSerialPort()==null)
+        if(ioStreamOperation.getSerialPort()==null||ioStreamOperation.getSerialPort()!=serialPort)
         {
             ioStreamOperation.setSerialPort(serialPort);
         }
@@ -70,3 +71,6 @@ public class startEngine implements ActionListener {
         }
     }
 }
+
+//修改  添加复位键，关闭键还有停止键
+//将此处的panel为component,直接加入一个新的panel里面

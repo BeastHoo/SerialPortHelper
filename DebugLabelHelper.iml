@@ -16,5 +16,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="org.knowm.xchart:xchart:3.5.2" level="application" />
+    <orderEntry type="library" exported="" name="org.jfree:jfreechart:1.0.19" level="application" />
+    <orderEntry type="library" exported="" name="jfree:jcommon:1.0.16" level="application" />
   </component>
 </module>

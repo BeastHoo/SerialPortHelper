@@ -5,7 +5,10 @@
 package helper.label;
 //import gnu.io.CommPort;
 import gnu.io.*;
+import helper.label.ioOperate.InputPanel;
 import helper.label.ioOperate.OutputPanel;
+import helper.label.ioOperate.RealTimeChartWithZoom;
+import helper.label.ioOperate.reDo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Random;
 
 public class PIDHelper  {
 
@@ -31,9 +35,14 @@ public class PIDHelper  {
     private JButton actionButton;
 //    private openPortListener portListener;
     private OutputPanel outputPanel;
+
+//    private InputPanel inputPanel;
+    private RealTimeChartWithZoom realTimeChartWithZoom;
+
     private startEngine start_Engine;
     private SerialPort serialPort;
     private JFrame jf;
+    private reDo Redo;
     public PIDHelper(JFrame jf)
     {
         init();
@@ -48,10 +57,18 @@ public class PIDHelper  {
         Port_Name=new JComboBox();
         BauldRate = new JComboBox();
         outputPanel =new OutputPanel(jf);
+//        inputPanel=new InputPanel();
+        realTimeChartWithZoom=new RealTimeChartWithZoom();
+        outputPanel.getIoStreamOperation().setRealTimeChartWithZoom(realTimeChartWithZoom);
         p1=new JPanel();
         p2= outputPanel.getIoPanel();
 //        p3=new JPanel();
-        p4=new JPanel();
+
+
+
+//        p4=inputPanel.retJPanel();
+        p4=realTimeChartWithZoom.getPanel();
+
 //        Icon =new ImageIcon("helper/label/refresh.ico");
 //        Icon.setImage(Icon.getImage().getScaledInstance(5,5,Image.SCALE_DEFAULT));
         flushButton=new JButton("刷新");
@@ -60,14 +77,27 @@ public class PIDHelper  {
 //        portListener=new openPortListener();
         serialPort=null;
         start_Engine=new startEngine(jf);
-        p3=start_Engine.startEnginePanel();
+        Redo=new reDo(jf);
+        Redo.setIoStreamOperation(outputPanel.getIoStreamOperation());
+        start_Engine.setIoStreamOperation(outputPanel.getIoStreamOperation());
+        p3=new JPanel();
+        p3.setBackground(Color.white);
+        p3.setLayout(new GridLayout(2,2));
+        p3.add(start_Engine.startEngineButton());
+        p3.add(Redo.returnReDoButton());
+        p3.add(new JLabel());
+        p3.add(new JLabel());
     }
 
+
+    public reDo getRedo() {
+        return Redo;
+    }
 
     public JSplitPane style()
     {
 
-        String [] rate=new String[]{"50","75","100","150","300","600","1200","2400","4800","9600","19200","38400"};
+        String [] rate=new String[]{"50","75","100","150","300","600","1200","2400","4800","9600","19200","115200"};
         ArrayList<String> portName= getPortName();
         String DateBits=new String("5678");
         String [] checkParity=new String[]{"NoParity","EvenParity","OddParity","SpaceParity","MarkParity"};
@@ -212,6 +242,7 @@ public class PIDHelper  {
                             serialPort.setSerialPortParams(Integer.parseInt(trim1),Integer.parseInt(trim2),Integer.parseInt(trim4),checkBit);
                             outputPanel.setSerialPort(serialPort);
                             start_Engine.setSerialPort(serialPort);
+                            Redo.setSerialPort(serialPort);
                             new portOpenSuccess(jf,commPort).setVisible(true);
                         } catch (UnsupportedCommOperationException unsupportedCommOperationException) {
                             unsupportedCommOperationException.printStackTrace();
