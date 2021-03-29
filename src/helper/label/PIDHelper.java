@@ -132,7 +132,7 @@ public class PIDHelper  {
         p1.setBackground(Color.WHITE);
         p2.setBackground(Color.WHITE);
         p3.setBackground(Color.WHITE);
-        p4.setBackground(Color.WHITE);
+        p4.setBackground(Color.white);
         JLabel title=new JLabel("串口设置:");
         title.setFont(new Font("黑体",Font.PLAIN,16));
 
